@@ -37,6 +37,7 @@ use strict;
 ######################################################################
 
 our @EXPORT = qw(configure
+                 utf82euckr
                  euckr2Johab
                  johab2Mct
                  mct2Johab
@@ -178,6 +179,30 @@ sub configure
     $TMP_FILE = $tmp_prefix . $$;
 }
 
+sub utf82euckr
+{
+    my ($str) = @_;
+    my $iconv_opt = "$ICONV_OPT -f utf-8 -t EUC-KR";
+
+    # Create a temporary file.
+    open(FD_TMP, ">$TMP_FILE") or die("Cannot create a temporary file");
+    print(FD_TMP $str);
+    close(FD_TMP);
+
+    # Use iconv to convert the text.
+    open(FD_CMD, "$ICONV $iconv_opt $TMP_FILE|")
+        or die("Cannot execute $ICONV");
+    $str = '';
+    while (my $line = <FD_CMD>) {
+        $str .= $line;
+    }
+    close(FD_CMD);
+
+    # Remove the temporary file.
+    `rm -f $TMP_FILE`;
+
+    return ($str);
+}
 ######################################################################
 # EUC-KR to Johab.
 # - $str: EUC-KR string.
